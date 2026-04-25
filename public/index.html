@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实时协同画板</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="room-info">
+        <span class="label">房间号:</span>
+        <span class="room-id" id="roomId">-</span>
+      </span>
+      <span class="user-count">
+        <span class="label">人数:</span>
+        <span class="count" id="userCount">0</span>
+      </span>
+    </div>
+    <div class="toolbar-right">
+      <div class="color-picker">
+        <button class="color-btn active" data-color="#1e293b" style="background:#1e293b"></button>
+        <button class="color-btn" data-color="#ef4444" style="background:#ef4444"></button>
+        <button class="color-btn" data-color="#3b82f6" style="background:#3b82f6"></button>
+        <button class="color-btn" data-color="#10b981" style="background:#10b981"></button>
+        <button class="color-btn" data-color="#f97316" style="background:#f97316"></button>
+      </div>
+      <div class="size-picker">
+        <input type="range" id="brushSize" min="1" max="30" value="5" step="1">
+        <span class="size-value" id="sizeValue">5px</span>
+      </div>
+      <button class="tool-btn" id="eraserBtn">橡皮擦</button>
+      <button class="tool-btn" id="clearBtn">清空画板</button>
+    </div>
+  </div>
+  <div class="canvas-container">
+    <canvas id="whiteboard"></canvas>
+  </div>
+  <div class="status-bar">
+    <span id="statusText">连接中...</span>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
