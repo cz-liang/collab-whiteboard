@@ -34,13 +34,16 @@
     // 首先尝试从查询参数获取房间号
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get("room");
+    console.log("Room param:", roomParam);
     if (roomParam && roomParam.match(/^[A-Z]{6}$/)) {
+      console.log("Valid room param:", roomParam);
       return roomParam;
     }
 
     // 然后尝试从路径获取房间号（用于本地开发）
     const path = window.location.pathname;
     const match = path.match(/^\/collab-whiteboard\/([A-Z]{6})$/);
+    console.log("Match:", match);
     if (match) {
       return match[1];
     }
