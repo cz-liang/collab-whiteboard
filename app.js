@@ -20,10 +20,18 @@
   let isEraser = false;
   let drawings = [];
 
+  // 获取基础路径（用于GitHub Pages）
+  function getBasePath() {
+    const path = window.location.pathname;
+    // 如果是GitHub Pages，路径会是 /collab-whiteboard/ 或 /collab-whiteboard/XXXXXX
+    const match = path.match(/^(\/[^\/]+)/);
+    return match ? match[1] : "";
+  }
+
   function initCanvas() {
     const toolbarHeight = document.querySelector(".toolbar").offsetHeight;
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight - toolbarHeight - 32; // 32 is status bar height
+    canvas.height = window.innerHeight - toolbarHeight - 32;
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.lineCap = "round";
@@ -32,21 +40,30 @@
 
   function getRoomIdFromUrl() {
     const path = window.location.pathname;
+    const basePath = getBasePath();
+
+    // 支持 /collab-whiteboard/XXXXXX 格式
+    const roomMatch = path.match(new RegExp(`^${basePath}/([A-Z]{6})$`));
+    if (roomMatch) {
+      return roomMatch[1];
+    }
+
+    // 支持 /XXXXXX 格式（本地开发）
     if (path.match(/^\/[A-Z]{6}$/)) {
       return path.substring(1);
     }
+
     return null;
   }
 
   function setRoomIdInUrl(id) {
     if (id) {
-      history.replaceState(null, "", "/" + id);
+      const basePath = getBasePath();
+      history.replaceState(null, "", basePath + "/" + id);
     }
   }
 
   function connect() {
-    // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    // const url = `${protocol}//${window.location.host}`;
     const url = "wss://api.oneuser.cn/wss";
     const urlRoomId = getRoomIdFromUrl();
     const wsUrl = url + (urlRoomId ? `?room=${urlRoomId}` : "");
@@ -122,233 +139,4 @@
   function handleMessage(message) {
     switch (message.type) {
       case "init":
-        roomId = message.roomId;
-        roomIdEl.textContent = message.roomId;
-        userCountEl.textContent = message.userCount;
-        setRoomIdInUrl(message.isNewRoom ? message.roomId : null);
-
-        if (message.drawings && message.drawings.length > 0) {
-          drawings = message.drawings;
-          redrawCanvas();
-        }
-        break;
-
-      case "user_joined":
-        userCountEl.textContent = message.userCount;
-        break;
-
-      case "user_left":
-        userCountEl.textContent = message.userCount;
-        break;
-
-      case "draw":
-        drawings.push(message.data);
-        drawLine(
-          message.data.x0,
-          message.data.y0,
-          message.data.x1,
-          message.data.y1,
-          message.data.color,
-          message.data.size,
-          message.data.isEraser,
-        );
-        break;
-
-      case "clear":
-        drawings = [];
-        clearCanvas();
-        break;
-
-      case "cursor":
-        break;
-    }
-  }
-
-  function sendDraw(x0, y0, x1, y1, color, size, isEraserMode) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      const data = {
-        type: "draw",
-        roomId: roomId,
-        data: { x0, y0, x1, y1, color, size, isEraser: isEraserMode },
-      };
-      console.log("Sending draw message:", data);
-      ws.send(JSON.stringify(data));
-    } else {
-      console.log("WebSocket not open, cannot send draw message");
-    }
-  }
-
-  function sendClear() {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      const data = {
-        type: "clear",
-        roomId: roomId,
-      };
-      console.log("Sending clear message:", data);
-      ws.send(JSON.stringify(data));
-    } else {
-      console.log("WebSocket not open, cannot send clear message");
-    }
-  }
-
-  function drawLine(x0, y0, x1, y1, color, size, isEraserMode) {
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    if (isEraserMode) {
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.strokeStyle = "rgba(0,0,0,1)";
-    } else {
-      ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = color;
-    }
-    ctx.lineWidth = size;
-    ctx.stroke();
-    ctx.globalCompositeOperation = "source-over";
-  }
-
-  function clearCanvas() {
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function redrawCanvas() {
-    clearCanvas();
-    for (const draw of drawings) {
-      drawLine(
-        draw.x0,
-        draw.y0,
-        draw.x1,
-        draw.y1,
-        draw.color,
-        draw.size,
-        draw.isEraser,
-      );
-    }
-  }
-
-  function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  }
-
-  function getTouchPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    return {
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top,
-    };
-  }
-
-  canvas.addEventListener("mousedown", (e) => {
-    isDrawing = true;
-    const pos = getMousePos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-  });
-
-  canvas.addEventListener("mousemove", (e) => {
-    if (!isDrawing) return;
-    const pos = getMousePos(e);
-    drawLine(lastX, lastY, pos.x, pos.y, currentColor, currentSize, isEraser);
-    sendDraw(lastX, lastY, pos.x, pos.y, currentColor, currentSize, isEraser);
-    drawings.push({
-      x0: lastX,
-      y0: lastY,
-      x1: pos.x,
-      y1: pos.y,
-      color: currentColor,
-      size: currentSize,
-      isEraser: isEraser,
-    });
-    lastX = pos.x;
-    lastY = pos.y;
-  });
-
-  canvas.addEventListener("mouseup", () => {
-    isDrawing = false;
-  });
-
-  canvas.addEventListener("mouseout", () => {
-    isDrawing = false;
-  });
-
-  canvas.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    isDrawing = true;
-    const pos = getTouchPos(e);
-    lastX = pos.x;
-    lastY = pos.y;
-  });
-
-  canvas.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const pos = getTouchPos(e);
-    drawLine(lastX, lastY, pos.x, pos.y, currentColor, currentSize, isEraser);
-    sendDraw(lastX, lastY, pos.x, pos.y, currentColor, currentSize, isEraser);
-    drawings.push({
-      x0: lastX,
-      y0: lastY,
-      x1: pos.x,
-      y1: pos.y,
-      color: currentColor,
-      size: currentSize,
-      isEraser: isEraser,
-    });
-    lastX = pos.x;
-    lastY = pos.y;
-  });
-
-  canvas.addEventListener("touchend", () => {
-    isDrawing = false;
-  });
-
-  colorBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      colorBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentColor = btn.dataset.color;
-      isEraser = false;
-      eraserBtn.classList.remove("active");
-      canvas.classList.remove("eraser");
-    });
-  });
-
-  brushSizeSelect.addEventListener("input", (e) => {
-    currentSize = parseInt(e.target.value);
-    sizeValueEl.textContent = currentSize + "px";
-  });
-
-  eraserBtn.addEventListener("click", () => {
-    isEraser = !isEraser;
-    eraserBtn.classList.toggle("active", isEraser);
-    canvas.classList.toggle("eraser", isEraser);
-    if (isEraser) {
-      colorBtns.forEach((b) => b.classList.remove("active"));
-    }
-  });
-
-  clearBtn.addEventListener("click", () => {
-    clearCanvas();
-    sendClear();
-  });
-
-  window.addEventListener("resize", () => {
-    const tempCanvas = document.createElement("canvas");
-    const tempCtx = tempCanvas.getContext("2d");
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    tempCtx.drawImage(canvas, 0, 0);
-
-    initCanvas();
-    tempCtx.drawImage(tempCanvas, 0, 0);
-  });
-
-  initCanvas();
-  connect();
-})();
+        roomId = message.room;
