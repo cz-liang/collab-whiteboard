@@ -20,7 +20,12 @@ function generateRoomId() {
 const server = http.createServer((req, res) => {
   const pathname = url.parse(req.url).pathname;
 
-  if (pathname === "/" || pathname === "/index.html") {
+  if (
+    pathname === "/" ||
+    pathname === "/index.html" ||
+    pathname === "/collab-whiteboard" ||
+    pathname === "/collab-whiteboard/"
+  ) {
     const filePath = path.join(__dirname, "public", "index.html");
     fs.readFile(filePath, (err, data) => {
       if (err) {
@@ -43,7 +48,22 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(data);
     });
-  } else if (pathname === "/style.css") {
+  } else if (pathname.match(/^\/collab-whiteboard\/[A-Z]{6}$/)) {
+    const roomId = pathname.substring(14);
+    const filePath = path.join(__dirname, "public", "index.html");
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(500);
+        res.end("Error loading index.html");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    });
+  } else if (
+    pathname === "/style.css" ||
+    pathname === "/collab-whiteboard/style.css"
+  ) {
     const filePath = path.join(__dirname, "public", "style.css");
     fs.readFile(filePath, (err, data) => {
       if (err) {
@@ -54,7 +74,10 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { "Content-Type": "text/css" });
       res.end(data);
     });
-  } else if (pathname === "/app.js") {
+  } else if (
+    pathname === "/app.js" ||
+    pathname === "/collab-whiteboard/app.js"
+  ) {
     const filePath = path.join(__dirname, "public", "app.js");
     fs.readFile(filePath, (err, data) => {
       if (err) {

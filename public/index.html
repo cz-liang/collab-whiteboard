@@ -4,34 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>实时协同画板</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/collab-whiteboard/style.css">
 </head>
 <body>
-  <div class="toolbar">
-    <div class="toolbar-left">
-      <span class="room-info">
-        <span class="label">房间号:</span>
-        <span class="room-id" id="roomId">-</span>
-      </span>
-      <span class="user-count">
-        <span class="label">人数:</span>
-        <span class="count" id="userCount">0</span>
-      </span>
+  <div style="position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 100;">
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="color: #666; font-size: 14px;">房间号:</span>
+        <span id="roomId" style="font-weight: bold; color: #1890ff; font-size: 16px; font-family: monospace; letter-spacing: 1px;">-</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="color: #666; font-size: 14px;">人数:</span>
+        <span id="userCount" style="font-weight: bold; color: #52c41a; font-size: 16px;">0</span>
+      </div>
     </div>
-    <div class="toolbar-right">
-      <div class="color-picker">
-        <button class="color-btn active" data-color="#1e293b" style="background:#1e293b"></button>
-        <button class="color-btn" data-color="#ef4444" style="background:#ef4444"></button>
-        <button class="color-btn" data-color="#3b82f6" style="background:#3b82f6"></button>
-        <button class="color-btn" data-color="#10b981" style="background:#10b981"></button>
-        <button class="color-btn" data-color="#f97316" style="background:#f97316"></button>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="display: flex; gap: 6px;">
+        <button class="color-btn active" data-color="#1e293b" style="background:#1e293b; width: 24px; height: 24px; border-radius: 4px; border: 2px solid transparent; cursor: pointer;"></button>
+        <button class="color-btn" data-color="#ef4444" style="background:#ef4444; width: 24px; height: 24px; border-radius: 4px; border: 2px solid transparent; cursor: pointer;"></button>
+        <button class="color-btn" data-color="#3b82f6" style="background:#3b82f6; width: 24px; height: 24px; border-radius: 4px; border: 2px solid transparent; cursor: pointer;"></button>
+        <button class="color-btn" data-color="#10b981" style="background:#10b981; width: 24px; height: 24px; border-radius: 4px; border: 2px solid transparent; cursor: pointer;"></button>
+        <button class="color-btn" data-color="#f97316" style="background:#f97316; width: 24px; height: 24px; border-radius: 4px; border: 2px solid transparent; cursor: pointer;"></button>
       </div>
-      <div class="size-picker">
-        <input type="range" id="brushSize" min="1" max="30" value="5" step="1">
-        <span class="size-value" id="sizeValue">5px</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <input type="range" id="brushSize" min="1" max="30" value="5" step="1" style="width: 100px;">
+        <span class="size-value" id="sizeValue" style="font-size: 12px; color: #666; min-width: 36px; text-align: center;">5px</span>
       </div>
-      <button class="tool-btn" id="eraserBtn">橡皮擦</button>
-      <button class="tool-btn" id="clearBtn">清空画板</button>
+      <button class="tool-btn" id="eraserBtn" style="padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; font-size: 14px; cursor: pointer;">橡皮擦</button>
+      <button class="tool-btn" id="clearBtn" style="padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; font-size: 14px; cursor: pointer;">清空画板</button>
     </div>
   </div>
   <div class="canvas-container">
@@ -40,6 +40,6 @@
   <div class="status-bar">
     <span id="statusText">连接中...</span>
   </div>
-  <script src="app.js"></script>
+  <script src="/collab-whiteboard/app.js"></script>
 </body>
 </html>

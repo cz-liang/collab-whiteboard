@@ -21,7 +21,7 @@
   let drawings = [];
 
   function initCanvas() {
-    const toolbarHeight = document.querySelector(".toolbar").offsetHeight;
+    const toolbarHeight = 60; // 固定工具栏高度
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - toolbarHeight - 32; // 32 is status bar height
     ctx.fillStyle = "#FFFFFF";
@@ -32,22 +32,23 @@
 
   function getRoomIdFromUrl() {
     const path = window.location.pathname;
-    if (path.match(/^\/[A-Z]{6}$/)) {
-      return path.substring(1);
+    const match = path.match(/^\/collab-whiteboard\/([A-Z]{6})$/);
+    if (match) {
+      return match[1];
     }
     return null;
   }
 
   function setRoomIdInUrl(id) {
     if (id) {
-      history.replaceState(null, "", "/" + id);
+      history.replaceState(null, "", "/collab-whiteboard/" + id);
     }
   }
 
   function connect() {
-    // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    // const url = `${protocol}//${window.location.host}`;
-    const url = "wss://api.oneuser.cn/wss";
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const url = `${protocol}//${window.location.host}`;
+    // const url = "wss://api.oneuser.cn/wss";
     const urlRoomId = getRoomIdFromUrl();
     const wsUrl = url + (urlRoomId ? `?room=${urlRoomId}` : "");
 
