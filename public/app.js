@@ -46,9 +46,9 @@
   }
 
   function connect() {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const url = `${protocol}//${window.location.host}`;
-    // const url = "wss://api.oneuser.cn/wss";
+    // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    // const url = `${protocol}//${window.location.host}`;
+    const url = "wss://api.oneuser.cn/wss";
     const urlRoomId = getRoomIdFromUrl();
     const wsUrl = url + (urlRoomId ? `?room=${urlRoomId}` : "");
 
