@@ -51,7 +51,7 @@
   function setRoomIdInUrl(id) {
     if (id) {
       // 使用查询参数格式，避免 GitHub Pages 404
-      history.replaceState(null, "", "/collab-whiteboard/?room=" + id);
+      history.replaceState(null, "", "/collab-whiteboard?room=" + id);
     }
   }
 
