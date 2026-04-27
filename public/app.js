@@ -31,17 +31,27 @@
   }
 
   function getRoomIdFromUrl() {
+    // 首先尝试从查询参数获取房间号
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get("room");
+    if (roomParam && roomParam.match(/^[A-Z]{6}$/)) {
+      return roomParam;
+    }
+
+    // 然后尝试从路径获取房间号（用于本地开发）
     const path = window.location.pathname;
     const match = path.match(/^\/collab-whiteboard\/([A-Z]{6})$/);
     if (match) {
       return match[1];
     }
+
     return null;
   }
 
   function setRoomIdInUrl(id) {
     if (id) {
-      history.replaceState(null, "", "/collab-whiteboard/" + id);
+      // 使用查询参数格式，避免 GitHub Pages 404
+      history.replaceState(null, "", "/collab-whiteboard/?room=" + id);
     }
   }
 
