@@ -32,9 +32,6 @@
 
   function getRoomIdFromUrl() {
     const path = window.location.pathname;
-    if (path.startsWith("/room/")) {
-      return path.substring(6);
-    }
     if (path.match(/^\/[A-Z]{6}$/)) {
       return path.substring(1);
     }
@@ -48,32 +45,78 @@
   }
 
   function connect() {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const url = `${protocol}//${window.location.host}`;
+    // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    // const url = `${protocol}//${window.location.host}`;
+    const url = "wss://api.oneuser.cn/wss";
     const urlRoomId = getRoomIdFromUrl();
+    const wsUrl = url + (urlRoomId ? `?room=${urlRoomId}` : "");
 
-    ws = new WebSocket(url + (urlRoomId ? `?room=${urlRoomId}` : ""));
+    console.log("Connecting to WebSocket:", wsUrl);
+    ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
+      console.log("WebSocket connected");
       statusText.textContent = "已连接";
       statusText.className = "connected";
+
+      // 如果是新房间，生成房间号
+      if (!urlRoomId) {
+        roomId = generateRoomId();
+        roomIdEl.textContent = roomId;
+        userCountEl.textContent = "1";
+        setRoomIdInUrl(roomId);
+        // 发送加入房间消息
+        const joinMessage = {
+          type: "join",
+          roomId: roomId,
+        };
+        console.log("Sending join message:", joinMessage);
+        ws.send(JSON.stringify(joinMessage));
+      } else {
+        roomId = urlRoomId;
+        roomIdEl.textContent = roomId;
+        userCountEl.textContent = "1";
+        // 发送加入房间消息
+        const joinMessage = {
+          type: "join",
+          roomId: roomId,
+        };
+        console.log("Sending join message:", joinMessage);
+        ws.send(JSON.stringify(joinMessage));
+      }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      console.log("WebSocket closed:", event.code, event.reason);
       statusText.textContent = "连接已断开，正在重连...";
       statusText.className = "disconnected";
       setTimeout(connect, 2000);
     };
 
-    ws.onerror = () => {
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
       statusText.textContent = "连接错误";
       statusText.className = "disconnected";
     };
 
     ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      handleMessage(message);
+      console.log("Received WebSocket message:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        handleMessage(message);
+      } catch (e) {
+        console.error("Error parsing WebSocket message:", e);
+      }
     };
+  }
+
+  function generateRoomId() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let roomId = "";
+    for (let i = 0; i < 6; i++) {
+      roomId += letters[Math.floor(Math.random() * letters.length)];
+    }
+    return roomId;
   }
 
   function handleMessage(message) {
@@ -125,15 +168,26 @@
     if (ws && ws.readyState === WebSocket.OPEN) {
       const data = {
         type: "draw",
+        roomId: roomId,
         data: { x0, y0, x1, y1, color, size, isEraser: isEraserMode },
       };
+      console.log("Sending draw message:", data);
       ws.send(JSON.stringify(data));
+    } else {
+      console.log("WebSocket not open, cannot send draw message");
     }
   }
 
   function sendClear() {
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "clear" }));
+      const data = {
+        type: "clear",
+        roomId: roomId,
+      };
+      console.log("Sending clear message:", data);
+      ws.send(JSON.stringify(data));
+    } else {
+      console.log("WebSocket not open, cannot send clear message");
     }
   }
 
@@ -280,8 +334,8 @@
   });
 
   clearBtn.addEventListener("click", () => {
-      clearCanvas();
-      sendClear();
+    clearCanvas();
+    sendClear();
   });
 
   window.addEventListener("resize", () => {
